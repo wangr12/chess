@@ -1,7 +1,6 @@
 package edu.guilford;
 
-import javafx.geometry.HPos;
-import javafx.geometry.VPos;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -10,7 +9,9 @@ import javafx.scene.layout.RowConstraints;
 public class BoardPane extends GridPane{
 
     private Piece[][] pieces; // 2D array to hold the pieces on the board
-    private ImageView[][] squares;
+    private Button[][] squares;
+    private int selectedRow;
+    private int selectedCol;
 
     public BoardPane() {
         super();
@@ -22,16 +23,28 @@ public class BoardPane extends GridPane{
             this.getRowConstraints().add(row);
         }
 
-        squares = new ImageView[8][8];
+        squares = new Button[8][8];
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                ImageView tempSquare = new ImageView();
-                squares[i][j] = tempSquare;
-                tempSquare.setFitWidth(90);
-                tempSquare.setFitHeight(90);
-                setHalignment(tempSquare, HPos.CENTER);
-                setValignment(tempSquare, VPos.CENTER);
-                this.add(tempSquare, i, j);
+                ImageView tempImage = new ImageView();
+                Button tempButton = new Button();
+
+                // setHalignment(tempSquare, HPos.CENTER);
+                // setValignment(tempSquare, VPos.CENTER);
+
+                tempButton.setMinSize(100, 100);
+                tempButton.setMaxSize(100, 100);
+                tempButton.setPrefSize(100, 100);
+                tempButton.setStyle("-fx-background-color: transparent;");
+                
+                tempButton.setGraphic(tempImage);
+
+                int row = i;
+                int col = j;
+                tempButton.setOnAction(event -> handleButtonClick(row, col));
+
+                squares[i][j] = tempButton;
+                this.add(tempButton, i, j);
             }
         }
 
@@ -41,11 +54,14 @@ public class BoardPane extends GridPane{
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if (pieces[i][j] != null) {
-                    squares[i][j].setImage(pieces[i][j].getIcon());
+                    ImageView pieceImage = new ImageView(pieces[i][j].getIcon());
+                    squares[i][j].setGraphic(pieceImage);
                 }
             }
         }
 
+        selectedRow = -1;
+        selectedCol = -1;
         
     }
 
@@ -55,6 +71,7 @@ public class BoardPane extends GridPane{
             pieces[i][6] = new Pawn("white", i, 6);
             pieces[i][1] = new Pawn("black", i, 1);
         }
+
         // rooks
         pieces[0][7] = new Rook("white", 0, 7);
         pieces[7][7] = new Rook("white", 7, 7);
@@ -81,5 +98,46 @@ public class BoardPane extends GridPane{
         pieces[4][7] = new King("white", 4, 7);
         pieces[4][0] = new King("black", 4, 0);
 
+    }
+
+    public void handleButtonClick(int i, int j) {
+        // Handle the button click event here
+        System.out.println("Button clicked at: " + i + ", " + j);
+        if (pieces[i][j] != null) {
+            if (selectedRow == -1) {
+                squares[i][j].setStyle("-fx-background-color: red;");
+                selectedRow = i;
+                selectedCol = j;
+            } else {
+                checkMove(i, j);
+            }
+        }
+        else {
+            checkMove(i,j);
+        }
+    }
+
+    public void checkMove(int i, int j) {
+        // 3 options: valid square, invalid square, same square
+        if (pieces[selectedRow][selectedCol].isValidMove(i, j, pieces)) {
+            System.out.println("valid");
+            // Move the piece
+            pieces[i][j] = pieces[selectedRow][selectedCol];
+            pieces[i][j].setPosition(i,j);
+            pieces[selectedRow][selectedCol] = null;
+
+            squares[i][j].setGraphic(new ImageView(pieces[i][j].getIcon()));
+            squares[selectedRow][selectedCol].setGraphic(null);
+
+            squares[selectedRow][selectedCol].setStyle("-fx-background-color: transparent;");
+            selectedRow = -1;
+            selectedCol = -1;
+        } else {
+            System.out.println("invalid");
+            // invalid move or same square: reset selection
+            squares[selectedRow][selectedCol].setStyle("-fx-background-color: transparent;");
+            selectedRow = -1;
+            selectedCol = -1;
+        }
     }
 }

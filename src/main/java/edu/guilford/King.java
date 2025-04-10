@@ -17,7 +17,18 @@ public class King extends Piece {
     }
 
     @Override
-    public boolean isValidMove(int newPositionColumn, int newPositionRow) {
-        return (Math.abs(newPositionColumn - getPositionColumn()) <= 1 && Math.abs(newPositionRow - getPositionRow()) <= 1);
+    public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
+        int x = Math.abs(newPositionColumn - positionColumn);
+        int y = Math.abs(newPositionRow - positionRow);
+        
+        if ((x == 1 && y == 0) || (x == 0 && y == 1) || (x == 1 && y == 1)) { // is a valid king move
+            // check if the selected square is empty or occupied by an opponent's piece
+            if (gamePieces[newPositionColumn][newPositionRow] == null) {
+                return true;
+            } else {
+                return checkCapture(gamePieces[newPositionColumn][newPositionRow]);
+            }
+        }
+        return false;
     }
 }

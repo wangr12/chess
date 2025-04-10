@@ -5,7 +5,7 @@ import javafx.scene.image.Image;
 public class Pawn extends Piece {
 
     private boolean firstMove;
-    private Image pawnIcon;
+    private final Image pawnIcon;
 
     public Pawn(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
@@ -20,24 +20,36 @@ public class Pawn extends Piece {
 
     // Method to check if the pawn can move to a new position
     @Override
-    public boolean isValidMove(int newPositionColumn, int newPositionRow) {
+    public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
         int n = 1;
-        if (this.color.equals("black")) {
-            n = -1; // Black pawns move down the board
+        if (this.color.equals("white")) {
+            n = -1; // white pawns move down the board
         }
 
-        if (newPositionColumn == positionColumn && newPositionRow == positionRow + 1*n) {
-            return true; // Move one square forward
-
-        } else if (firstMove && newPositionColumn == positionColumn && newPositionRow == positionRow + 2*n) {
-            firstMove = false; // Update firstMove to false after the first move
-            return true; // Move two squares forward
-
-        } else if (Math.abs(newPositionColumn - positionColumn) == 1 && newPositionRow == positionRow + 1*n) {
-            return true; // Capture diagonally
+        if (newPositionColumn == positionColumn && newPositionRow == positionRow + n) {
+            // check nothing is blocking the pawn
+            if (gamePieces[newPositionColumn][newPositionRow] == null) {
+                firstMove = false;
+                return true;
+            }
         }
         
-        return false; // Invalid move
+        // move two squares forward
+        else if (firstMove && newPositionColumn == positionColumn && newPositionRow == positionRow + 2*n) {
+            // check nothing is blocking the pawn
+            if ((gamePieces[positionColumn][positionRow + n] == null) && (gamePieces[positionColumn][positionRow + 2*n] == null)) {
+                firstMove = false;
+                return true;
+            }
+        }
+        
+        // capture diagonally
+        else if (Math.abs(newPositionColumn - positionColumn) == 1 && newPositionRow == positionRow + n) {
+            if  (gamePieces[newPositionColumn][newPositionRow] != null) {
+                return checkCapture(gamePieces[newPositionColumn][newPositionRow]);
+            }
+        }
+        
+        return false; // invalid move
     }
-
 }

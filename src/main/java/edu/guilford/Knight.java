@@ -16,11 +16,17 @@ public class Knight extends Piece{
         setIcon(knightIcon);
     }
 
-    public boolean isValidMove(int newPositionColumn, int newPositionRow) {
+    public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
         int columnDiff = Math.abs(newPositionColumn - getPositionColumn());
         int rowDiff = Math.abs(newPositionRow - getPositionRow());
-
-        return (columnDiff == 2 && rowDiff == 1) || (columnDiff == 1 && rowDiff == 2);
+        if ((columnDiff == 2 && rowDiff == 1) || (columnDiff == 1 && rowDiff == 2)) {
+            if (gamePieces[newPositionColumn][newPositionRow] == null) {
+                return true;
+            } else {
+                return checkCapture(gamePieces[newPositionColumn][newPositionRow]);
+            }
+        } 
+        return false;
     }
 
 }

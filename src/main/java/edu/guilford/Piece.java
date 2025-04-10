@@ -34,5 +34,12 @@ public abstract class Piece {
         this.positionRow = positionRow;
     }
 
-    public abstract boolean isValidMove(int positionColumn, int positionRow);
+    public boolean checkCapture(Piece targetPiece) {
+        if (targetPiece != null && !this.color.equals(targetPiece.getColor())) {
+            return true;
+        }
+        return false;
+    }
+
+    public abstract boolean isValidMove(int positionColumn, int positionRow, Piece[][] pieces);
 }

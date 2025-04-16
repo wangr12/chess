@@ -5,6 +5,8 @@ import javafx.scene.image.Image;
 public class King extends Piece {
 
     private Image kingIcon;
+    private boolean canCastleQSide;
+    private boolean canCastleKSide;
 
     public King(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
@@ -14,6 +16,22 @@ public class King extends Piece {
             kingIcon = new Image(this.getClass().getResource("/edu/guilford/pieces/bk.png").toExternalForm());
         }
         setIcon(kingIcon);
+
+        canCastleQSide = true;
+        canCastleKSide = true;
+    }
+
+    public boolean getCanCastleQSide () {
+        return canCastleQSide;
+    }
+    public void setCanCastleQSide (boolean canCastleQSide) {
+        this.canCastleQSide = canCastleQSide;
+    }
+    public boolean getCanCastleKSide () {
+        return canCastleKSide;
+    }
+    public void setCanCastleKSide (boolean canCastleKSide) {
+        this.canCastleKSide = canCastleKSide;
     }
 
     @Override

@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 public class Rook extends Piece {
 
     private Image rookIcon;
+    private boolean hasMoved;
 
     public Rook(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
@@ -14,6 +15,14 @@ public class Rook extends Piece {
             rookIcon = new Image(this.getClass().getResource("/edu/guilford/pieces/br.png").toExternalForm());
         }
         setIcon(rookIcon);
+        hasMoved = false;
+    }
+
+    public boolean getHasMoved() {
+        return hasMoved;
+    }
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
     }
 
     @Override

@@ -35,6 +35,7 @@ public class ChessDisplay extends Application {
         boardPane.setBackground(new Background(chessBoard));
 
         scene = new Scene(boardPane, 800, 800);
+        stage.setTitle("Chess");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();

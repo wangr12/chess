@@ -16,6 +16,11 @@ public class Game {
     private String turn;
     private boolean inCheck;
 
+    private Piece[] whitePieces;
+    private Piece[] blackPieces;
+    private Piece[] currentPieces; // set of pieces for the current turn
+    private Piece[] opponentPieces; // set of pieces for the current turn's opponent
+
     public Game() {
         this.pieces = new Piece[8][8];
         this.squares = new Button[8][8];
@@ -29,6 +34,10 @@ public class Game {
         this.inCheck = false;
         this.turnKingRow = whiteKingRow;
         this.turnKingCol = whiteKingCol;
+        this.whitePieces = new Piece[16];
+        this.blackPieces = new Piece[16];
+        this.currentPieces = whitePieces;
+        this.opponentPieces = blackPieces;
     }
 
     public Piece[][] getPieces() {
@@ -65,35 +74,35 @@ public class Game {
     public void setStartPos() {
         // pawns
         for (int i = 0; i < 8; i++) {
-            pieces[i][6] = new Pawn("white", i, 6);
-            pieces[i][1] = new Pawn("black", i, 1);
+            pieces[i][6] = whitePieces[i] = new Pawn("white", i, 6);
+            pieces[i][1] = blackPieces[i] = new Pawn("black", i, 1);
         }
 
         // rooks
-        pieces[0][7] = new Rook("white", 0, 7);
-        pieces[7][7] = new Rook("white", 7, 7);
-        pieces[0][0] = new Rook("black", 0, 0);
-        pieces[7][0] = new Rook("black", 7, 0);
+        pieces[0][7] = whitePieces[8] = new Rook("white", 0, 7);
+        pieces[7][7] = whitePieces[9] = new Rook("white", 7, 7);
+        pieces[0][0] = blackPieces[8] = new Rook("black", 0, 0);
+        pieces[7][0] = blackPieces[9] = new Rook("black", 7, 0);
 
         // knights
-        pieces[1][7] = new Knight("white", 1, 7);
-        pieces[6][7] = new Knight("white", 6, 7);
-        pieces[1][0] = new Knight("black", 1, 0);
-        pieces[6][0] = new Knight("black", 6, 0);
+        pieces[1][7] = whitePieces[10] = new Knight("white", 1, 7);
+        pieces[6][7] = whitePieces[11] = new Knight("white", 6, 7);
+        pieces[1][0] = blackPieces[10] = new Knight("black", 1, 0);
+        pieces[6][0] = blackPieces[11] = new Knight("black", 6, 0);
 
         // bishops
-        pieces[2][7] = new Bishop("white", 2, 7);
-        pieces[5][7] = new Bishop("white", 5, 7);
-        pieces[2][0] = new Bishop("black", 2, 0);
-        pieces[5][0] = new Bishop("black", 5, 0);
+        pieces[2][7] = whitePieces[12] = new Bishop("white", 2, 7);
+        pieces[5][7] = whitePieces[13] = new Bishop("white", 5, 7);
+        pieces[2][0] = blackPieces[12] = new Bishop("black", 2, 0);
+        pieces[5][0] = blackPieces[13] = new Bishop("black", 5, 0);
 
         // queens
-        pieces[3][7] = new Queen("white", 3, 7);
-        pieces[3][0] = new Queen("black", 3, 0);
+        pieces[3][7] = whitePieces[14] = new Queen("white", 3, 7);
+        pieces[3][0] = blackPieces[14] = new Queen("black", 3, 0);
 
         // kings
-        pieces[4][7] = new King("white", 4, 7);
-        pieces[4][0] = new King("black", 4, 0);
+        pieces[4][7] = whitePieces[15] = new King("white", 4, 7);
+        pieces[4][0] = blackPieces[15] = new King("black", 4, 0);
 
     }
 
@@ -161,6 +170,17 @@ public class Game {
             }
 
             // Move the piece
+            // if the move is a capture move, set the captured piece to null (or else it will be included in the oppenent's pieces array)
+            if (pieces[i][j] != null) {
+                for (int k = 0; k < opponentPieces.length; k++) {
+                    if (opponentPieces[k] != null) {
+                        if (opponentPieces[k] == pieces[i][j]) {
+                            opponentPieces[k] = null;
+                            break;
+                        }
+                    }
+                }
+            }
             pieces[i][j] = selectedPiece;
             pieces[i][j].setPosition(i,j);
             pieces[selectedCol][selectedRow] = null;
@@ -214,14 +234,18 @@ public class Game {
             turn = "black";
             turnKingCol = blackKingCol;
             turnKingRow = blackKingRow;
+            currentPieces = blackPieces;
+            opponentPieces = whitePieces;
         } else {
             turn = "white";
             turnKingCol = whiteKingCol;
             turnKingRow = whiteKingRow;
+            currentPieces = whitePieces;
+            opponentPieces = blackPieces;
         }
 
 
-        inCheck = isKingInCheck(turn, pieces);
+        inCheck = isKingInCheck(opponentPieces, pieces);
         if (inCheck) {
             squares[turnKingCol][turnKingRow].setStyle("-fx-background-color: red;");
         }
@@ -235,9 +259,15 @@ public class Game {
         }
     }
 
-    private boolean isKingInCheck(String color, Piece[][] pieces) {
+    private boolean isKingInCheck(Piece[] p, Piece[][] pieces) {
+
+        for (Piece piece : p) {
+            if (piece != null && piece.isValidMove(turnKingCol, turnKingRow, pieces)) {
+                return true; // king is in check
+            }
+        }
         
-    
+    /*
         // iterate through all opponent pieces
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -249,6 +279,7 @@ public class Game {
                 }
             }
         }
+    */
         return false; // king is not in check
     }
 
@@ -267,10 +298,19 @@ public class Game {
             turnKingRow = y2;
         }
 
+        Piece[] tempOpponentPieces = new Piece[16];
+        for (int i = 0; i < opponentPieces.length; i++) {
+            if (opponentPieces[i] == tempPieces[x2][y2]) { // if piece is captured
+                tempOpponentPieces[i] = null;
+            }
+            else {
+                tempOpponentPieces[i] = opponentPieces[i];
+            }
+        }
         tempPieces[x2][y2] = tempPieces[x1][y1];
         tempPieces[x1][y1] = null;
 
-        boolean kingInCheck = isKingInCheck(turn, tempPieces);
+        boolean kingInCheck = isKingInCheck(tempOpponentPieces, tempPieces);
         if (tempPieces[x2][y2] instanceof King) {
             //updateKingPosition(x1, y1, x1, y1);
             turnKingCol = x1;
@@ -320,21 +360,17 @@ public class Game {
             // 2. Identify the attacking piece(s)
             Piece attackingPiece = null;
             int attackerCol = -1, attackerRow = -1;
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (pieces[i][j] != null && !pieces[i][j].getColor().equals(turn)) {
-                        if (pieces[i][j].isValidMove(turnKingCol, turnKingRow, pieces)) {
-                            if (attackingPiece == null) {
-                                attackingPiece = pieces[i][j];
-                                attackerCol = i;
-                                attackerRow = j;
-                            }
-                            else {
-                                // king is in double check & we already determined
-                                // that the king cannot move --> checkmate
-                                return true;
-                            }
-                        }
+            for (Piece piece : currentPieces) {
+                if (piece != null && piece.isValidMove(turnKingCol, turnKingRow, pieces)) {
+                    if (attackingPiece == null) {
+                        attackingPiece = piece;
+                        //attackerCol = i;
+                        //attackerRow = j;
+                    }
+                    else {
+                        // king is in double check & we already determined
+                        // that the king cannot move --> checkmate
+                        return true;
                     }
                 }
             }
@@ -345,14 +381,10 @@ public class Game {
             }
     
             // 3. Check if the attacking piece can be captured
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (pieces[i][j] != null && pieces[i][j].getColor().equals(turn)) {
-                        if (pieces[i][j].isValidMove(attackerCol, attackerRow, pieces)) {
-                            if (checkSafeMove(i, j, attackerCol, attackerRow)) {
-                                return false; // A piece can capture the attacker
-                            }
-                        }
+            for (Piece piece : currentPieces) {
+                if (piece != null && piece.isValidMove(attackingPiece.getPositionColumn(), attackingPiece.getPositionRow(), pieces)) {
+                    if (checkSafeMove(piece.getPositionColumn(), piece.getPositionRow(), attackingPiece.getPositionColumn(), attackingPiece.getPositionRow())) {
+                        return false; // A piece can capture the attacker
                     }
                 }
             }
@@ -366,14 +398,10 @@ public class Game {
                 int blockCol = attackerCol + dCol;
     
                 while (blockRow != turnKingRow || blockCol != turnKingCol) {
-                    for (int i = 0; i < 8; i++) {
-                        for (int j = 0; j < 8; j++) {
-                            if (pieces[i][j] != null && pieces[i][j].getColor().equals(turn)) {
-                                if (pieces[i][j].isValidMove(blockCol, blockRow, pieces)) {
-                                    if (checkSafeMove(i, j, blockCol, blockRow)) {
-                                        return false; // A piece can block the attack
-                                    }
-                                }
+                    for (Piece piece : currentPieces) {
+                        if (piece != null && piece.isValidMove(blockCol, blockRow, pieces)) {
+                            if (checkSafeMove(piece.getPositionColumn(), piece.getPositionRow(), blockCol, blockRow)) {
+                                return false; // A piece can block the attack
                             }
                         }
                     }
@@ -392,13 +420,15 @@ public class Game {
         King king = (King) pieces[turnKingCol][turnKingRow];
         if (side == 'K') {
             // king cannot be in check or move into check. additionally, rook cannot be under attack in casteled position
-            if (isKingInCheck(turn, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+1,turnKingRow)) {
+            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+1,turnKingRow)) {
                 return false;
             }
             if (king.getCanCastleKSide() && pieces[turnKingCol + 1][turnKingRow] == null && pieces[turnKingCol + 2][turnKingRow] == null) {
 
                 pieces[turnKingCol + 2][turnKingRow] = pieces[turnKingCol][turnKingRow]; // move king
+                pieces[turnKingCol + 2][turnKingRow].setPosition(turnKingCol + 2, turnKingRow);
                 pieces[turnKingCol + 1][turnKingRow] = pieces[turnKingCol + 3][turnKingRow]; // move rook
+                pieces[turnKingCol + 1][turnKingRow].setPosition(turnKingCol + 1, turnKingRow); // Update rook's position
                 pieces[turnKingCol][turnKingRow] = null;
                 pieces[turnKingCol + 3][turnKingRow] = null;
 
@@ -413,7 +443,7 @@ public class Game {
             }
 
         } else if (side == 'Q') {
-            if (isKingInCheck(turn, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-1,turnKingRow)) {
+            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-1,turnKingRow)) {
                 return false;
             }
             if (king.getCanCastleQSide() && pieces[turnKingCol - 1][turnKingRow] == null && pieces[turnKingCol - 2][turnKingRow] == null) {

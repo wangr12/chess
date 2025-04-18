@@ -9,9 +9,9 @@ public class Game {
     private int selectedRow;
     private int selectedCol;
 
-    private int whiteKingRow, whiteKingCol;
-    private int blackKingRow, blackKingCol;
-    private int turnKingRow, turnKingCol; // track the king's position of the current turn
+    private King whiteKing;
+    private King blackKing;
+    private King currentKing; // current turn's king
 
     private String turn;
     private boolean inCheck;
@@ -26,14 +26,8 @@ public class Game {
         this.squares = new Button[8][8];
         this.selectedRow = -1;
         this.selectedCol = -1;
-        this.whiteKingRow = 7;
-        this.whiteKingCol = 4;
-        this.blackKingRow = 0;
-        this.blackKingCol = 4;
         this.turn = "white";
         this.inCheck = false;
-        this.turnKingRow = whiteKingRow;
-        this.turnKingCol = whiteKingCol;
         this.whitePieces = new Piece[16];
         this.blackPieces = new Piece[16];
         this.currentPieces = whitePieces;
@@ -104,6 +98,10 @@ public class Game {
         pieces[4][7] = whitePieces[15] = new King("white", 4, 7);
         pieces[4][0] = blackPieces[15] = new King("black", 4, 0);
 
+        whiteKing = (King) pieces[4][7];
+        blackKing = (King) pieces[4][0];
+        currentKing = whiteKing;
+
     }
 
     // check if move is valid and move the piece
@@ -141,11 +139,9 @@ public class Game {
 
             // update king position if piece is a king and turn off catling
             if (selectedPiece instanceof King) {
-                updateKingPosition(turnKingCol, turnKingRow, i, j);
-                King king = (King) selectedPiece;
-                if (king.getCanCastleKSide() || king.getCanCastleQSide()) {
-                    king.setCanCastleKSide(false);
-                    king.setCanCastleQSide(false);
+                if (currentKing.getCanCastleKSide() || currentKing.getCanCastleQSide()) {
+                    currentKing.setCanCastleKSide(false);
+                    currentKing.setCanCastleQSide(false);
                 }
             }
 
@@ -154,11 +150,10 @@ public class Game {
                 Rook rook = (Rook) selectedPiece;
                 if (rook.getHasMoved() == false) {
                     rook.setHasMoved(true);
-                    King king = (King) pieces[turnKingCol][turnKingRow];
                     if (selectedCol == 0) {
-                        king.setCanCastleQSide(false);
+                        currentKing.setCanCastleQSide(false);
                     } else if (selectedCol == 7) {
-                        king.setCanCastleKSide(false);
+                        currentKing.setCanCastleKSide(false);
                     }
                 }
             }
@@ -232,14 +227,12 @@ public class Game {
     private void completeTurn() {
         if (turn.equals("white")) {
             turn = "black";
-            turnKingCol = blackKingCol;
-            turnKingRow = blackKingRow;
+            currentKing = blackKing;
             currentPieces = blackPieces;
             opponentPieces = whitePieces;
         } else {
             turn = "white";
-            turnKingCol = whiteKingCol;
-            turnKingRow = whiteKingRow;
+            currentKing = whiteKing;
             currentPieces = whitePieces;
             opponentPieces = blackPieces;
         }
@@ -247,11 +240,11 @@ public class Game {
 
         inCheck = isKingInCheck(opponentPieces, pieces);
         if (inCheck) {
-            squares[turnKingCol][turnKingRow].setStyle("-fx-background-color: red;");
+            squares[currentKing.getPositionColumn()][currentKing.getPositionRow()].setStyle("-fx-background-color: red;");
         }
         else {
-            squares[whiteKingCol][whiteKingRow].setStyle("-fx-background-color: transparent;");
-            squares[blackKingCol][blackKingRow].setStyle("-fx-background-color: transparent;");
+            squares[whiteKing.getPositionColumn()][whiteKing.getPositionRow()].setStyle("-fx-background-color: transparent;");
+            squares[blackKing.getPositionColumn()][blackKing.getPositionRow()].setStyle("-fx-background-color: transparent;");
         }
 
         if (checkCheckmate()) {
@@ -262,24 +255,11 @@ public class Game {
     private boolean isKingInCheck(Piece[] p, Piece[][] pieces) {
 
         for (Piece piece : p) {
-            if (piece != null && piece.isValidMove(turnKingCol, turnKingRow, pieces)) {
+            if (piece != null && piece.isValidMove(currentKing.getPositionColumn(), currentKing.getPositionRow(), pieces)) {
                 return true; // king is in check
             }
         }
         
-    /*
-        // iterate through all opponent pieces
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (pieces[i][j] != null && !pieces[i][j].getColor().equals(color)) {
-                    // check if the opponent piece can attack the king
-                    if (pieces[i][j].isValidMove(turnKingCol, turnKingRow, pieces)) {
-                        return true; // king is in check
-                    }
-                }
-            }
-        }
-    */
         return false; // king is not in check
     }
 
@@ -292,11 +272,7 @@ public class Game {
             }
         }
 
-        if (tempPieces[x1][y1] instanceof King) {
-            //updateKingPosition(x1, y1, x2, y2);
-            turnKingCol = x2;
-            turnKingRow = y2;
-        }
+        tempPieces[x1][y1].setPosition(x2, y2);
 
         Piece[] tempOpponentPieces = new Piece[16];
         for (int i = 0; i < opponentPieces.length; i++) {
@@ -311,27 +287,13 @@ public class Game {
         tempPieces[x1][y1] = null;
 
         boolean kingInCheck = isKingInCheck(tempOpponentPieces, tempPieces);
-        if (tempPieces[x2][y2] instanceof King) {
-            //updateKingPosition(x1, y1, x1, y1);
-            turnKingCol = x1;
-            turnKingRow = y1;
-        }
+        tempPieces[x2][y2].setPosition(x1, y1); // reset piece position
         if (kingInCheck) {
             return false; // piece is pinned & cannot move
         } else {
             return true;
         }
 
-    }
-
-    private void updateKingPosition(int kingCol, int kingRow, int i, int j) {
-        if (pieces[kingCol][kingRow].getColor().equals("white")) {
-            whiteKingCol = i;
-            whiteKingRow = j;
-        } else {
-            blackKingCol = i;
-            blackKingRow = j;
-        }
     }
 
     private boolean checkCheckmate() {
@@ -345,11 +307,11 @@ public class Game {
                         continue; // Skip the current position
                     }
     
-                    int newX = turnKingCol + xDif;
-                    int newY = turnKingRow + yDif;
+                    int newX = currentKing.getPositionColumn() + xDif;
+                    int newY = currentKing.getPositionRow() + yDif;
                     if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
                         if (pieces[newX][newY] == null || !pieces[newX][newY].getColor().equals(turn)) {
-                            if (checkSafeMove(turnKingCol, turnKingRow, newX, newY)) {
+                            if (checkSafeMove(currentKing.getPositionColumn(), currentKing.getPositionRow(), newX, newY)) {
                                 return false; // King can move to a safe square
                             }
                         }
@@ -361,7 +323,7 @@ public class Game {
             Piece attackingPiece = null;
             int attackerCol = -1, attackerRow = -1;
             for (Piece piece : currentPieces) {
-                if (piece != null && piece.isValidMove(turnKingCol, turnKingRow, pieces)) {
+                if (piece != null && piece.isValidMove(currentKing.getPositionColumn(), currentKing.getPositionRow(), pieces)) {
                     if (attackingPiece == null) {
                         attackingPiece = piece;
                         //attackerCol = i;
@@ -391,13 +353,13 @@ public class Game {
     
             // 4. Check if the attack can be blocked (only rook/bishop/queen can be blocked)
             if (attackingPiece instanceof Rook || attackingPiece instanceof Bishop || attackingPiece instanceof Queen) {
-                int dRow = Integer.signum(turnKingRow - attackerRow);
-                int dCol = Integer.signum(turnKingCol - attackerCol);
+                int dRow = Integer.signum(currentKing.getPositionRow() - attackerRow);
+                int dCol = Integer.signum(currentKing.getPositionColumn() - attackerCol);
     
                 int blockRow = attackerRow + dRow;
                 int blockCol = attackerCol + dCol;
     
-                while (blockRow != turnKingRow || blockCol != turnKingCol) {
+                while (blockRow != currentKing.getPositionRow() || blockCol != currentKing.getPositionColumn()) {
                     for (Piece piece : currentPieces) {
                         if (piece != null && piece.isValidMove(blockCol, blockRow, pieces)) {
                             if (checkSafeMove(piece.getPositionColumn(), piece.getPositionRow(), blockCol, blockRow)) {
@@ -417,48 +379,53 @@ public class Game {
 
     // return true if successfuly castled
     private boolean castle(char side) {
-        King king = (King) pieces[turnKingCol][turnKingRow];
+        int kingCol = currentKing.getPositionColumn();
+        int kingRow = currentKing.getPositionRow();
         if (side == 'K') {
             // king cannot be in check or move into check. additionally, rook cannot be under attack in casteled position
-            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol+1,turnKingRow)) {
+            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(kingCol,kingRow,kingCol+2,kingRow) || !checkSafeMove(kingCol,kingRow,kingCol+1,kingRow)) {
                 return false;
             }
-            if (king.getCanCastleKSide() && pieces[turnKingCol + 1][turnKingRow] == null && pieces[turnKingCol + 2][turnKingRow] == null) {
+            if (currentKing.getCanCastleKSide() && pieces[kingCol + 1][kingRow] == null && pieces[kingCol + 2][kingRow] == null) {
 
-                pieces[turnKingCol + 2][turnKingRow] = pieces[turnKingCol][turnKingRow]; // move king
-                pieces[turnKingCol + 2][turnKingRow].setPosition(turnKingCol + 2, turnKingRow);
-                pieces[turnKingCol + 1][turnKingRow] = pieces[turnKingCol + 3][turnKingRow]; // move rook
-                pieces[turnKingCol + 1][turnKingRow].setPosition(turnKingCol + 1, turnKingRow); // Update rook's position
-                pieces[turnKingCol][turnKingRow] = null;
-                pieces[turnKingCol + 3][turnKingRow] = null;
+                pieces[kingCol + 2][kingRow] = pieces[kingCol][kingRow]; // move king
+                currentKing.setPosition(kingCol + 2, kingRow); // update king position
+                pieces[kingCol + 1][kingRow] = pieces[kingCol + 3][kingRow]; // move rook
+                pieces[kingCol + 1][kingRow].setPosition(kingCol + 1, kingRow); // Update rook's position
+                pieces[kingCol][kingRow] = null;
+                pieces[kingCol + 3][kingRow] = null;
 
-                squares[turnKingCol + 2][turnKingRow].setGraphic(new ImageView(pieces[turnKingCol + 2][turnKingRow].getIcon()));
-                squares[turnKingCol + 1][turnKingRow].setGraphic(new ImageView(pieces[turnKingCol + 1][turnKingRow].getIcon()));
-                squares[turnKingCol][turnKingRow].setGraphic(null);
-                squares[turnKingCol + 3][turnKingRow].setGraphic(null);
+                // update gui
+                squares[kingCol + 2][kingRow].setGraphic(new ImageView(pieces[kingCol + 2][kingRow].getIcon()));
+                squares[kingCol + 1][kingRow].setGraphic(new ImageView(pieces[kingCol + 1][kingRow].getIcon()));
+                squares[kingCol][kingRow].setGraphic(null);
+                squares[kingCol + 3][kingRow].setGraphic(null);
 
-                king.setCanCastleKSide(false);
-                king.setCanCastleQSide(false);
+                currentKing.setCanCastleKSide(false);
+                currentKing.setCanCastleQSide(false);
                 return true;
             }
 
         } else if (side == 'Q') {
-            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-2,turnKingRow) || !checkSafeMove(turnKingCol,turnKingRow,turnKingCol-1,turnKingRow)) {
+            if (isKingInCheck(opponentPieces, pieces) || !checkSafeMove(kingCol, kingRow, kingCol - 2, kingRow) || !checkSafeMove(kingCol, kingRow, kingCol - 1, kingRow)) {
                 return false;
             }
-            if (king.getCanCastleQSide() && pieces[turnKingCol - 1][turnKingRow] == null && pieces[turnKingCol - 2][turnKingRow] == null) {
-                pieces[turnKingCol - 2][turnKingRow] = pieces[turnKingCol][turnKingRow];
-                pieces[turnKingCol - 1][turnKingRow] = pieces[turnKingCol - 4][turnKingRow];
-                pieces[turnKingCol][turnKingRow] = null;
-                pieces[turnKingCol - 4][turnKingRow] = null;
-
-                squares[turnKingCol - 2][turnKingRow].setGraphic(new ImageView(pieces[turnKingCol - 2][turnKingRow].getIcon()));
-                squares[turnKingCol - 1][turnKingRow].setGraphic(new ImageView(pieces[turnKingCol - 1][turnKingRow].getIcon()));
-                squares[turnKingCol][turnKingRow].setGraphic(null);
-                squares[turnKingCol - 4][turnKingRow].setGraphic(null);
-
-                king.setCanCastleKSide(false);
-                king.setCanCastleQSide(false);
+            if (currentKing.getCanCastleQSide() && pieces[kingCol - 1][kingRow] == null && pieces[kingCol - 2][kingRow] == null) {
+                pieces[kingCol - 2][kingRow] = pieces[kingCol][kingRow]; // move king
+                currentKing.setPosition(kingCol - 2, kingRow); // update king position
+                pieces[kingCol - 1][kingRow] = pieces[kingCol - 4][kingRow]; // move rook
+                pieces[kingCol - 1][kingRow].setPosition(kingCol - 1, kingRow); // Update rook's position
+                pieces[kingCol][kingRow] = null;
+                pieces[kingCol - 4][kingRow] = null;
+                
+                // update gui
+                squares[kingCol - 2][kingRow].setGraphic(new ImageView(pieces[kingCol - 2][kingRow].getIcon()));
+                squares[kingCol - 1][kingRow].setGraphic(new ImageView(pieces[kingCol - 1][kingRow].getIcon()));
+                squares[kingCol][kingRow].setGraphic(null);
+                squares[kingCol - 4][kingRow].setGraphic(null);
+        
+                currentKing.setCanCastleKSide(false);
+                currentKing.setCanCastleQSide(false);
                 return true;
             }
         }

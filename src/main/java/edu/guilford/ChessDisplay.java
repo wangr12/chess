@@ -15,7 +15,9 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.stage.Stage;
 
 /**
- * JavaFX App
+ * This program runs a standard game of chess.
+ * @author Ray Wang
+ * @version 1.0
  */
 public class ChessDisplay extends Application {
 

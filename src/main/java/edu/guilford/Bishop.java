@@ -2,10 +2,21 @@ package edu.guilford;
 
 import javafx.scene.image.Image;
 
+/**
+ * The Bishop class represents a bishop piece in a chess game.
+ * It extends the Piece class.
+ */
 public class Bishop extends Piece {
 
     private Image bishopIcon;
 
+    /**
+     * Constructor for the Bishop class.
+     *
+     * @param color          The color of the bishop (white or black).
+     * @param positionColumn The column position of the bishop on the board.
+     * @param positionRow    The row position of the bishop on the board.
+     */
     public Bishop(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
         if (color.equals("white")) {
@@ -16,6 +27,10 @@ public class Bishop extends Piece {
         setIcon(bishopIcon);
     }
 
+    /**
+     * Determines if the given move is valid for the bishop piece.
+     * @return true if the move is valid, false otherwise.
+     */
     @Override
     public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
         int x = Math.abs(newPositionColumn - positionColumn);

@@ -2,11 +2,21 @@ package edu.guilford;
 
 import javafx.scene.image.Image;
 
+/**
+ * The Pawn class represents a pawn piece in a chess game.
+ * It extends the Piece class
+ */
 public class Pawn extends Piece {
 
     private boolean firstMove;
     private final Image pawnIcon;
 
+    /**
+     * Constructor for the Pawn class.
+     * @param color The color of the pawn (white or black).
+     * @param positionColumn The column position of the pawn on the board.
+     * @param positionRow The row position of the pawn on the board.
+     */
     public Pawn(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
         this.firstMove = true;
@@ -18,7 +28,14 @@ public class Pawn extends Piece {
         setIcon(this.pawnIcon);
     }
 
-    // Method to check if the pawn can move to a new position
+
+    /**
+     * Checks if the pawn can move to the specified position.
+     * @param newPositionColumn The column position to move to.
+     * @param newPositionRow The row position to move to.
+     * @param gamePieces The current state of the game board.
+     * @return true if the move is valid, false otherwise.
+     */
     @Override
     public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
         int n = 1;

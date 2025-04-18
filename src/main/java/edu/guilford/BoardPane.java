@@ -6,6 +6,11 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
+/**
+ * This class represents the chess board and handles the layout of the squares and pieces.
+ * It extends the GridPane class to create a grid layout for the chess board.
+ * Each square on the board is represented by a Button, and the pieces are represented by ImageView objects.
+ */
 public class BoardPane extends GridPane{
 
     private Piece[][] pieces; // 2D array to hold the pieces on the board
@@ -13,6 +18,10 @@ public class BoardPane extends GridPane{
     private int selectedRow;
     private int selectedCol;
 
+    /**
+     * Constructor for the BoardPane class.
+     * It initializes the chess board with 8x8 squares and sets up the pieces in their starting positions.
+     */
     public BoardPane() {
         super();
 
@@ -66,6 +75,14 @@ public class BoardPane extends GridPane{
         
     }
 
+    /**
+     * This method handles the button click events on the chess board.
+     * It checks if a piece is selected and performs the appropriate action based on the game rules.
+     *
+     * @param game The current game instance.
+     * @param i The column index of the clicked square.
+     * @param j The row index of the clicked square.
+     */
     public void handleButtonClick(Game game, int i, int j) {
         if (game.getPieces()[i][j] != null) {
             if (i == game.getSelectedCol() && j == game.getSelectedRow()) { // click same square --> deselect piece

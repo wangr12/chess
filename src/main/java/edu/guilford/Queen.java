@@ -2,10 +2,20 @@ package edu.guilford;
 
 import javafx.scene.image.Image;
 
+/**
+ * The Queen class represents a queen piece in a chess game.
+ * It extends the Piece class
+ */
 public class Queen extends Piece {
 
     private Image queenIcon;
 
+    /**
+     * Constructor for the Queen class.
+     * @param color          The color of the queen (white or black).
+     * @param positionColumn The column position of the queen on the board.
+     * @param positionRow    The row position of the queen on the board.
+     */
     public Queen(String color, int positionColumn, int positionRow) {
         super(color, positionColumn, positionRow);
         if (color.equals("white")) {
@@ -16,6 +26,13 @@ public class Queen extends Piece {
         setIcon(queenIcon);
     }
 
+    /**
+     * Determines if the Queen can move to the specified position
+     * @param newPositionColumn The column position to move to.
+     * @param newPositionRow    The row position to move to.
+     * @param gamePieces       The current state of the game board.
+     * @return true if the move is valid, false otherwise.
+     */
     @Override
     public boolean isValidMove(int newPositionColumn, int newPositionRow, Piece[][] gamePieces) {
         if (Math.abs(newPositionColumn - positionColumn) == Math.abs(newPositionRow - positionRow) || 

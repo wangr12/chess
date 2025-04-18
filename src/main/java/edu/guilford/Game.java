@@ -3,6 +3,11 @@ package edu.guilford;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 
+/**
+ * Game class represents the chess game logic and state.
+ * It manages the pieces on the board, handles moves, checks for check and checkmate,
+ * and manages the turn of the players.
+ */
 public class Game {
     private Piece[][] pieces; // 2D array to hold the pieces on the board
     private Button[][] squares;
@@ -21,6 +26,10 @@ public class Game {
     private Piece[] currentPieces; // set of pieces for the current turn
     private Piece[] opponentPieces; // set of pieces for the current turn's opponent
 
+    /**
+     * Constructor for the Game class.
+     * Initializes the pieces, squares, and sets the initial turn to white.
+     */
     public Game() {
         this.pieces = new Piece[8][8];
         this.squares = new Button[8][8];
@@ -34,37 +43,80 @@ public class Game {
         this.opponentPieces = blackPieces;
     }
 
+    /**
+     * Gets the array of pieces
+     * @return 2D array of pieces
+     */
     public Piece[][] getPieces() {
         return pieces;
     }
+    /**
+     * Sets the array of pieces
+     * @param pieces 2D array of pieces
+     */
     public void setPieces(Piece[][] pieces) {
         this.pieces = pieces;
     }
+    /**
+     * Gets the array of squares
+     * @return 2D array of buttons representing squares
+     */
     public Button[][] getSquares() {
         return squares;
     }
+    /**
+     * Sets the array of squares
+     * @param squares 2D array of buttons representing squares
+     */
     public void setSquares(Button[][] squares) {
         this.squares = squares;
     }
+    /**
+     * Gets the selected row
+     * @return selected row index
+     */
     public int getSelectedRow() {
         return selectedRow;
     }
+    /**
+     * Sets the selected row
+     * @param selectedRow selected row index
+     */
     public void setSelectedRow(int selectedRow) {
         this.selectedRow = selectedRow;
     }
+    /**
+     * Gets the selected column
+     * @return selected column index
+     */
     public int getSelectedCol() {
         return selectedCol;
     }
+    /**
+     * Sets the selected column
+     * @param selectedCol selected column index
+     */
     public void setSelectedCol(int selectedCol) {
         this.selectedCol = selectedCol;
     }
+    /**
+     * Gets the current turn
+     * @return current turn ("white" or "black")
+     */
     public String getTurn() {
         return turn;
     }
+    /**
+     * Sets the current turn
+     * @param turn current turn ("white" or "black")
+     */
     public boolean getInCheck() {
         return inCheck;
     }
 
+    /**
+     * Sets the starting position of the pieces on the board.
+     */
     public void setStartPos() {
         // pawns
         for (int i = 0; i < 8; i++) {
@@ -104,7 +156,20 @@ public class Game {
 
     }
 
-    // check if move is valid and move the piece
+    /**
+     * Checks if the move is valid and updates the game state accordingly.
+     * It handles the following scenarios:
+     * 1. Selecting a piece
+     * 2. Moving a piece to a valid square
+     * 3. Moving a piece to an invalid square
+     * 4. Moving a piece to the same square
+     * 5. Castling
+     * 6. Promoting a pawn
+     * 7. Capturing an opponent's piece
+     * 8. Resetting the selection if the move is invalid
+     * @param i the column index of the square to move to
+     * @param j the row index of the square to move to
+     */
     public void checkMove(int i, int j) {
 
         if (selectedCol == -1) {
